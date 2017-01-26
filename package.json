@@ -1,12 +1,12 @@
 {
-  "name": "elm-webpack-starter",
-  "description": "Webpack setup for writing Elm apps",
+  "name": "dice-game",
+  "description": "Dice game made in elm",
   "version": "0.8.4",
   "license": "MIT",
-  "author": "Peter Morawiec",
+  "author": "John Fredrik Asphaug",
   "repository": {
     "type": "git",
-    "url": "https://github.com/moarwick/elm-webpack-starter"
+    "url": "https://github.com/johnfredrik/dice-game.git"
   },
   "scripts": {
     "start": "webpack-dev-server --hot --inline",

@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
-    "summary": "Example using `elm-webpack-loader`.",
-    "repository": "https://github.com/moarwick/elm-webpack-starter.git",
+    "summary": "Dice game in elm",
+    "repository": "https://github.com/johnfredrik/dice-game.git",
     "license": "MIT",
     "source-directories": [
         "src/elm"
