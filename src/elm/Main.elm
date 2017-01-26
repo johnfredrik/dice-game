@@ -5,8 +5,6 @@ import Random exposing (..)
 import Platform.Cmd exposing (batch)
 import List.Extra exposing(group)
 
-import Components.Player as Ply exposing (Player, new, diceView)
-
 main =
   Html.program
     { init = init "John Fredrik"
@@ -16,14 +14,20 @@ main =
     }
 
 type Msg 
- = Roll
- | NewFace1 Int
- | NewFace2 Int
- | NewFace3 Int
- | NewFace4 Int
- | NewFace5 Int
+    = Roll
+    | NewFace1 Int
+    | NewFace2 Int
+    | NewFace3 Int
+    | NewFace4 Int
+    | NewFace5 Int
+    | Select1
+    | Select2
+    | Select3
+    | Select4
+    | Select5
 
-update : Msg -> Ply.Player -> (Ply.Player, Cmd Msg)
+
+update : Msg -> Player -> (Player, Cmd Msg)
 update msg model = 
  case msg of 
   Roll ->
@@ -34,37 +38,85 @@ update msg model =
                  , Random.generate NewFace5 (Random.int 1 6)])
 
   NewFace1 newFace1 ->
-   ({model | dieFace1 = newFace1}, Cmd.none)
+     if not model.die1.saved then
+      ({model | die1 = (newFace model.die1 newFace1) }, Cmd.none)
+     else
+      (model, Cmd.none)
 
   NewFace2 newFace2 ->
-   ({model | dieFace2 = newFace2}, Cmd.none)
+     if not model.die2.saved then
+      ({model | die2 = (newFace model.die2 newFace2) }, Cmd.none)
+     else
+      (model, Cmd.none)
 
   NewFace3 newFace3 ->
-   ({model | dieFace3 = newFace3}, Cmd.none)
+     if not model.die3.saved then
+      ({model | die3 = (newFace model.die3 newFace3) }, Cmd.none)
+     else
+      (model, Cmd.none)
 
   NewFace4 newFace4 ->
-   ({model | dieFace3 = newFace4}, Cmd.none)
+    if not model.die4.saved then
+      ({model | die4 = (newFace model.die4 newFace4) }, Cmd.none)
+    else
+      (model, Cmd.none)
   
   NewFace5 newFace5 ->
-   ({model | dieFace5 = newFace5}, Cmd.none)
+    if not model.die5.saved then
+      ({model | die5 = (newFace model.die5 newFace5) }, Cmd.none)
+    else
+      (model, Cmd.none)
+  Select1 ->
+   let 
+    die1 = model.die1
+    newDie1 = { face = die1.face, saved = (not die1.saved)}
+   in
+    ({model | die1 = newDie1}, Cmd.none)
 
-subscriptions : Ply.Player -> Sub Msg
+  Select2 ->
+   let 
+    die2 = model.die2
+    newDie2 = { face = die2.face, saved = (not die2.saved)}
+   in
+    ({model | die2 = newDie2}, Cmd.none)
+
+  Select3 ->
+   let 
+    die3 = model.die3
+    newDie3 = { face = die3.face, saved = (not die3.saved)}
+   in
+    ({model | die3 = newDie3}, Cmd.none)
+
+  Select4 ->
+   let 
+    die4 = model.die4
+    newDie4 = { face = die4.face, saved = (not die4.saved)}
+   in
+    ({model | die4 = newDie4}, Cmd.none)
+
+  Select5 ->
+   let 
+    die5 = model.die5
+    newDie5 = { face = die5.face, saved = (not die5.saved)}
+   in
+    ({model | die5 = newDie5}, Cmd.none)
+
+subscriptions : Player -> Sub Msg
 subscriptions model =
   Sub.none
 
-view : Ply.Player -> Html Msg
+view : Player -> Html Msg
 view model = 
     div []
-    [ (Ply.diceView model)
-    , button [ onClick Roll ] [ text "Roll" ]
+    [ (diceView model)
     , div [] [ text (validate model)]
     ]
   
 
-init : String -> (Ply.Player, Cmd Msg)
+init : String -> (Player, Cmd Msg)
 init name = 
     let 
-      player = Ply.new name
+      player = new name
     in
       (player, Cmd.none)
 
@@ -73,7 +125,7 @@ init name =
 validate: Player -> String
 validate model =
   let
-    groupedDies = List.Extra.group (List.sort [model.dieFace1, model.dieFace2, model.dieFace3, model.dieFace4, model.dieFace5])
+    groupedDies = List.Extra.group (List.sort [model.die1.face, model.die2.face, model.die3.face, model.die4.face, model.die5.face])
   in
     if (List.any isYatzy groupedDies) then
       "Yatzy"
@@ -106,3 +158,62 @@ isThreeOfaKind a =
 isPair : List Int -> Bool
 isPair a =
   List.length a == 2
+
+type alias Player = 
+    {   username : String
+    ,   die1 : Dice
+    ,   die2 : Dice
+    ,   die3 : Dice
+    ,   die4 : Dice
+    ,   die5 : Dice
+    }
+new : String -> Player
+new name = 
+    { username = name, die1 = (newDice 1), die2 = (newDice 1), die3 = (newDice 1), die4 = (newDice 1), die5 = (newDice 1)}
+
+diceView: Player -> Html Msg
+diceView player = 
+    div []
+    [ div [] [ text player.username]
+    , img [ src (getUrl player.die1.face), onClick Select1, style styles.img] []
+    , img [ src (getUrl player.die2.face), onClick Select2 , style styles.img] []
+    , img [ src (getUrl player.die3.face), onClick Select3 , style styles.img] []
+    , img [ src (getUrl player.die4.face), onClick Select4 , style styles.img] []
+    , img [ src (getUrl player.die5.face), onClick Select5 , style styles.img] []
+    , button [ onClick Roll ] [ text "Roll" ]
+    ]
+
+getUrl: Int -> String
+getUrl dieFace =
+ case dieFace of
+  1 -> "https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-1-b.svg"
+  2 -> "https://upload.wikimedia.org/wikipedia/commons/5/5f/Dice-2-b.svg"
+  3 -> "https://upload.wikimedia.org/wikipedia/commons/b/b1/Dice-3-b.svg"
+  4 -> "https://upload.wikimedia.org/wikipedia/commons/f/fd/Dice-4-b.svg"
+  5 -> "https://upload.wikimedia.org/wikipedia/commons/0/08/Dice-5-b.svg"
+  6 -> "https://upload.wikimedia.org/wikipedia/commons/2/26/Dice-6-b.svg"
+  _ -> "https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-1-b.svg"
+
+  --CSS STYLES
+styles : { img : List ( String, String ) }
+styles =
+  {
+    img =
+      [ ( "width", "5%" )
+      , ( "margin", "10px")
+      ]
+  }
+
+type alias Dice =
+    { face : Int
+    , saved : Bool
+    }
+
+newDice : Int -> Dice 
+newDice number =
+    {face = number, saved = False}
+
+
+newFace: Dice -> Int -> Dice 
+newFace dice number =
+  { face = number, saved = dice.saved}
