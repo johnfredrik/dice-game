@@ -175,11 +175,11 @@ diceView: Player -> Html Msg
 diceView player = 
     div []
     [ div [] [ text player.username]
-    , img [ src (getUrl player.die1.face), onClick Select1, style styles.img] []
-    , img [ src (getUrl player.die2.face), onClick Select2 , style styles.img] []
-    , img [ src (getUrl player.die3.face), onClick Select3 , style styles.img] []
-    , img [ src (getUrl player.die4.face), onClick Select4 , style styles.img] []
-    , img [ src (getUrl player.die5.face), onClick Select5 , style styles.img] []
+    , img [ src (getUrl player.die1.face), onClick Select1,  style (styles player.die1.saved).img] []
+    , img [ src (getUrl player.die2.face), onClick Select2 , style (styles player.die2.saved).img] []
+    , img [ src (getUrl player.die3.face), onClick Select3 , style (styles player.die3.saved).img] []
+    , img [ src (getUrl player.die4.face), onClick Select4 , style (styles player.die4.saved).img] []
+    , img [ src (getUrl player.die5.face), onClick Select5 , style (styles player.die5.saved).img] []
     , button [ onClick Roll ] [ text "Roll" ]
     ]
 
@@ -195,14 +195,24 @@ getUrl dieFace =
   _ -> "https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-1-b.svg"
 
   --CSS STYLES
-styles : { img : List ( String, String ) }
-styles =
-  {
-    img =
-      [ ( "width", "5%" )
-      , ( "margin", "10px")
-      ]
-  }
+styles: Bool -> { img : List ( String, String ) }
+styles saved =
+    if (saved) then
+      {
+        img =
+          [ ( "width", "5%" )
+          , ( "margin", "10px")
+          , ( "border", "1px solid red")
+          , ( "border-radius", "7px")
+          ]
+      }
+    else
+      {
+        img =
+          [ ( "width", "5%" )
+          , ( "margin", "10px")
+          ]
+      }
 
 type alias Dice =
     { face : Int
