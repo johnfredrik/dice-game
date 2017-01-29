@@ -31,7 +31,7 @@ update : Msg -> Player -> (Player, Cmd Msg)
 update msg model = 
  case msg of 
   Roll ->
-   (model, batch [ Random.generate NewFace1 (Random.int 1 6)
+   ({model | rollNumber = model.rollNumber + 1}, batch [ Random.generate NewFace1 (Random.int 1 6)
                  , Random.generate NewFace2 (Random.int 1 6)
                  , Random.generate NewFace3 (Random.int 1 6)
                  , Random.generate NewFace4 (Random.int 1 6)
@@ -161,6 +161,7 @@ isPair a =
 
 type alias Player = 
     {   username : String
+    ,   rollNumber : Int
     ,   die1 : Dice
     ,   die2 : Dice
     ,   die3 : Dice
@@ -169,12 +170,12 @@ type alias Player =
     }
 new : String -> Player
 new name = 
-    { username = name, die1 = (newDice 1), die2 = (newDice 1), die3 = (newDice 1), die4 = (newDice 1), die5 = (newDice 1)}
+    { username = name, rollNumber = 0, die1 = (newDice 1), die2 = (newDice 1), die3 = (newDice 1), die4 = (newDice 1), die5 = (newDice 1)}
 
 diceView: Player -> Html Msg
 diceView player = 
     div []
-    [ div [] [ text player.username]
+    [ div [] [ text (player.username ++ "Roll number: " ++ toString player.rollNumber)]
     , img [ src (getUrl player.die1.face), onClick Select1,  style (styles player.die1.saved).img] []
     , img [ src (getUrl player.die2.face), onClick Select2 , style (styles player.die2.saved).img] []
     , img [ src (getUrl player.die3.face), onClick Select3 , style (styles player.die3.saved).img] []
