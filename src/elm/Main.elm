@@ -181,7 +181,7 @@ diceView player =
     , img [ src (getUrl player.die3.face), onClick Select3 , style (styles player.die3.saved).img] []
     , img [ src (getUrl player.die4.face), onClick Select4 , style (styles player.die4.saved).img] []
     , img [ src (getUrl player.die5.face), onClick Select5 , style (styles player.die5.saved).img] []
-    , button [ onClick Roll ] [ text "Roll" ]
+    , rollResetButton player
     ]
 
 getUrl: Int -> String
@@ -228,3 +228,10 @@ newDice number =
 newFace: Dice -> Int -> Dice 
 newFace dice number =
   { face = number, saved = dice.saved}
+
+rollResetButton: Player -> Html Msg
+rollResetButton player =
+  if player.rollNumber < 3 then 
+    button [ onClick Roll ] [ text "Roll" ]
+  else 
+    button [ ] [ text "Reset" ]
