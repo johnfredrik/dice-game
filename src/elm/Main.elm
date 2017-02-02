@@ -15,6 +15,7 @@ main =
 
 type Msg 
     = Roll
+    | ResetDice
     | NewFace1 Int
     | NewFace2 Int
     | NewFace3 Int
@@ -36,6 +37,12 @@ update msg model =
                  , Random.generate NewFace3 (Random.int 1 6)
                  , Random.generate NewFace4 (Random.int 1 6)
                  , Random.generate NewFace5 (Random.int 1 6)])
+  
+  ResetDice ->
+    let 
+      player = resetDice model
+    in
+      (player, Cmd.none)
 
   NewFace1 newFace1 ->
      if not model.die1.saved then
@@ -108,15 +115,13 @@ subscriptions model =
 view : Player -> Html Msg
 view model = 
     div []
-    [ (diceView model)
-    , div [] [ text (validate model)]
-    ]
+    [ (diceView model) ]
   
 
 init : String -> (Player, Cmd Msg)
 init name = 
     let 
-      player = new name
+      player = newPlayer name
     in
       (player, Cmd.none)
 
@@ -127,7 +132,9 @@ validate model =
   let
     groupedDies = List.Extra.group (List.sort [model.die1.face, model.die2.face, model.die3.face, model.die4.face, model.die5.face])
   in
-    if (List.any isYatzy groupedDies) then
+    if (model.die1.face < 1 || model.die1.face > 6) then
+      ""
+    else if (List.any isYatzy groupedDies) then
       "Yatzy"
     else if (List.any isFourOfaKind groupedDies) then 
       "Four of a Kind"
@@ -162,42 +169,55 @@ isPair a =
 type alias Player = 
     {   username : String
     ,   rollNumber : Int
+    ,   previousScore : List (List Dice)
     ,   die1 : Dice
     ,   die2 : Dice
     ,   die3 : Dice
     ,   die4 : Dice
     ,   die5 : Dice
     }
-new : String -> Player
-new name = 
-    { username = name, rollNumber = 0, die1 = (newDice 1), die2 = (newDice 1), die3 = (newDice 1), die4 = (newDice 1), die5 = (newDice 1)}
+newPlayer : String -> Player
+newPlayer name = 
+    { username = name, rollNumber = 0, previousScore = [], die1 = (newDice 0), die2 = (newDice 0), die3 = (newDice 0), die4 = (newDice 0), die5 = (newDice 0) }
+
+resetDice : Player -> Player
+resetDice player =
+  let 
+    new = (newPlayer player.username)
+    previousScore = [player.die1, player.die2, player.die3, player.die4, player.die5]
+  in
+    {new | previousScore = previousScore :: player.previousScore}
+    
 
 diceView: Player -> Html Msg
 diceView player = 
     div []
-    [ div [] [ text (player.username ++ "Roll number: " ++ toString player.rollNumber)]
-    , img [ src (getUrl player.die1.face), onClick Select1,  style (styles player.die1.saved).img] []
-    , img [ src (getUrl player.die2.face), onClick Select2 , style (styles player.die2.saved).img] []
-    , img [ src (getUrl player.die3.face), onClick Select3 , style (styles player.die3.saved).img] []
-    , img [ src (getUrl player.die4.face), onClick Select4 , style (styles player.die4.saved).img] []
-    , img [ src (getUrl player.die5.face), onClick Select5 , style (styles player.die5.saved).img] []
+    [ div [] [ text player.username ]
+    , div [] [ text ("Roll number: " ++ toString player.rollNumber)]
+    , img [ src (getUrl player.die1.face), onClick Select1,  style (mainDiceImageStyles player.die1.saved).img] []
+    , img [ src (getUrl player.die2.face), onClick Select2 , style (mainDiceImageStyles player.die2.saved).img] []
+    , img [ src (getUrl player.die3.face), onClick Select3 , style (mainDiceImageStyles player.die3.saved).img] []
+    , img [ src (getUrl player.die4.face), onClick Select4 , style (mainDiceImageStyles player.die4.saved).img] []
+    , img [ src (getUrl player.die5.face), onClick Select5 , style (mainDiceImageStyles player.die5.saved).img] []
     , rollResetButton player
+    , div [] [ text (validate player)]
+    , previousScoreView player.previousScore
     ]
 
 getUrl: Int -> String
 getUrl dieFace =
  case dieFace of
-  1 -> "https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-1-b.svg"
-  2 -> "https://upload.wikimedia.org/wikipedia/commons/5/5f/Dice-2-b.svg"
-  3 -> "https://upload.wikimedia.org/wikipedia/commons/b/b1/Dice-3-b.svg"
-  4 -> "https://upload.wikimedia.org/wikipedia/commons/f/fd/Dice-4-b.svg"
-  5 -> "https://upload.wikimedia.org/wikipedia/commons/0/08/Dice-5-b.svg"
-  6 -> "https://upload.wikimedia.org/wikipedia/commons/2/26/Dice-6-b.svg"
-  _ -> "https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-1-b.svg"
+  1 -> "static/img/dice-1.svg"
+  2 -> "static/img/dice-2.svg"
+  3 -> "static/img/dice-3.svg"
+  4 -> "static/img/dice-4.svg"
+  5 -> "static/img/dice-5.svg"
+  6 -> "static/img/dice-6.svg"
+  _ -> "static/img/dice-0.svg"
 
   --CSS STYLES
-styles: Bool -> { img : List ( String, String ) }
-styles saved =
+mainDiceImageStyles: Bool -> { img : List ( String, String ) }
+mainDiceImageStyles saved =
     if (saved) then
       {
         img =
@@ -214,6 +234,15 @@ styles saved =
           , ( "margin", "10px")
           ]
       }
+
+previousDiceImageStyles: { img : List ( String, String ) }
+previousDiceImageStyles =
+  {
+    img =
+      [ ( "width", "2%" )
+      , ( "margin", "10px")
+      ]
+  }
 
 type alias Dice =
     { face : Int
@@ -234,4 +263,30 @@ rollResetButton player =
   if player.rollNumber < 3 then 
     button [ onClick Roll ] [ text "Roll" ]
   else 
-    button [ ] [ text "Reset" ]
+    button [ onClick ResetDice ] [ text "Reset" ]
+
+diceScores: List Dice -> Html Msg
+diceScores dices = 
+  if (List.length dices) > 0 then 
+    div [] 
+      [ div [] [text (toString (List.Extra.elemIndex dices)) ]
+      , div [] (List.map diceScore dices)
+      ]
+  else 
+    div [] []
+
+diceScore: Dice -> Html Msg
+diceScore dice =
+  img [ src (getUrl dice.face), onClick Select1,  style previousDiceImageStyles.img] []
+
+previousScoreView: List (List Dice) -> Html Msg
+previousScoreView scores = 
+  if (List.length scores) > 0 then 
+    div [] 
+    [ div [] [text "Previous Score"]
+    , div [] (List.map diceScores scores)
+    ]
+  else 
+    div [] []
+
+getIndexString 
