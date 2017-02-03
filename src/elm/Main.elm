@@ -288,5 +288,3 @@ previousScoreView scores =
     ]
   else 
     div [] []
-
-getIndexString 
