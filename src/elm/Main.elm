@@ -1,10 +1,17 @@
+port module Main exposing(..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Random exposing (..)
 import Platform.Cmd exposing (batch)
 import List.Extra exposing(group)
+import Svg
+import Svg.Attributes
+import Debug exposing(log)
 
+port rerollDice : (() -> msg) -> Sub msg
+
+main : Program Never Player Msg
 main =
   Html.program
     { init = init "John Fredrik"
@@ -26,11 +33,17 @@ type Msg
     | Select3
     | Select4
     | Select5
+    | Test String
 
 
 update : Msg -> Player -> (Player, Cmd Msg)
 update msg model = 
  case msg of 
+  Test name ->
+    let
+      _ = log "Name" name
+    in
+      (model, Cmd.none)
   Roll ->
    ({model | rollNumber = model.rollNumber + 1}, batch [ Random.generate NewFace1 (Random.int 1 6)
                  , Random.generate NewFace2 (Random.int 1 6)
@@ -110,7 +123,7 @@ update msg model =
 
 subscriptions : Player -> Sub Msg
 subscriptions model =
-  Sub.none
+  rerollDice (always Roll)
 
 view : Player -> Html Msg
 view model = 
@@ -194,11 +207,11 @@ diceView player =
     div []
     [ div [] [ text player.username ]
     , div [] [ text ("Roll number: " ++ toString player.rollNumber)]
-    , img [ src (getUrl player.die1.face), onClick Select1,  style (mainDiceImageStyles player.die1.saved).img] []
-    , img [ src (getUrl player.die2.face), onClick Select2 , style (mainDiceImageStyles player.die2.saved).img] []
-    , img [ src (getUrl player.die3.face), onClick Select3 , style (mainDiceImageStyles player.die3.saved).img] []
-    , img [ src (getUrl player.die4.face), onClick Select4 , style (mainDiceImageStyles player.die4.saved).img] []
-    , img [ src (getUrl player.die5.face), onClick Select5 , style (mainDiceImageStyles player.die5.saved).img] []
+    , getDieFace player.die1.face
+    , getDieFace player.die2.face
+    , getDieFace player.die3.face
+    , getDieFace player.die4.face
+    , getDieFace player.die5.face
     , rollResetButton player
     , div [] [ text (validate player)]
     , previousScoreView player.previousScore
@@ -288,3 +301,129 @@ previousScoreView scores =
     ]
   else 
     div [] []
+
+getDieFace : Int -> Html Msg
+getDieFace number =
+  Svg.svg 
+  [ Svg.Attributes.width "557"
+  , Svg.Attributes.height "557"
+  ] 
+  [ Svg.rect 
+      [ Svg.Attributes.x "4"
+      , Svg.Attributes.y "4"
+      , Svg.Attributes.width "549"
+      , Svg.Attributes.height "549"
+      , Svg.Attributes.rx "68"
+      , Svg.Attributes.fill "white"
+      , Svg.Attributes.stroke "#000"
+      , Svg.Attributes.strokeWidth "7"
+      ][]
+  , getDie number
+  ]
+    
+getDie : Int -> Html Msg
+getDie number =
+  let
+    _ = log "number" number
+  in
+    case number of 
+      1 ->
+        getDie1
+      2 -> 
+        getDie2
+      3 ->
+        getDie3
+      4 ->
+        getDie4
+      5 ->
+        getDie5
+      6 ->
+        getDie6
+      _ ->
+        getDie1
+
+getDie1 : Html Msg
+getDie1 =
+  Svg.circle 
+    [ Svg.Attributes.cx "278"
+    , Svg.Attributes.cy "278"
+    , Svg.Attributes.r "70"
+    , Svg.Attributes.fill "black"
+    , Svg.Attributes.stroke "black"
+    , Svg.Attributes.strokeWidth "1"
+    ] []
+
+getDie2 : Html Msg
+getDie2 =
+  Svg.g [] 
+    [ Svg.circle 
+      [ Svg.Attributes.cx "439.9746094"
+      , Svg.Attributes.cy "439.9736328"
+      , Svg.Attributes.r "70"
+      ] []
+    , Svg.circle 
+      [ Svg.Attributes.cx "117.0258789"
+      , Svg.Attributes.cy "117.0263672"
+      , Svg.Attributes.r "70"
+      ] []
+    ]
+
+getDie3 : Html Msg
+getDie3 =
+  Svg.g [] 
+    [ Svg.circle 
+      [ Svg.Attributes.cx "439.9746094"
+      , Svg.Attributes.cy "439.9736328"
+      , Svg.Attributes.r "70"
+      ] []
+    , Svg.circle 
+      [ Svg.Attributes.cx "117.0258789"
+      , Svg.Attributes.cy "117.0263672"
+      , Svg.Attributes.r "70"
+      ] []
+        , Svg.circle 
+      [ Svg.Attributes.cx "278.5"
+      , Svg.Attributes.cy "278.5"
+      , Svg.Attributes.r "70"
+      ] []
+    ]
+
+getDie4 : Html Msg
+getDie4 =
+  Svg.g 
+    [ Svg.Attributes.strokeDasharray "0,323"
+    , Svg.Attributes.strokeLinecap "round"
+    ] 
+    [ Svg.path 
+      [ Svg.Attributes.stroke "#000"
+      , Svg.Attributes.strokeWidth "140"
+      , Svg.Attributes.d "M117,117v325m323-2V11"
+      ][] 
+    ]
+
+getDie5 : Html Msg
+getDie5 =
+  Svg.g 
+    [ Svg.Attributes.strokeDasharray "0,228.4"
+    , Svg.Attributes.strokeLinecap "round"
+    ] 
+    [ Svg.path 
+      [ Svg.Attributes.stroke "#000"
+      , Svg.Attributes.strokeWidth "140"
+      , Svg.Attributes.d "m440,440-325-325m2,325 325-325"
+      ][] 
+    ]
+
+getDie6 : Html Msg
+getDie6 =
+  Svg.g 
+    [ Svg.Attributes.strokeDasharray "0,159"
+    , Svg.Attributes.strokeLinecap "round"
+    ] 
+    [ Svg.path 
+      [ Svg.Attributes.stroke "#000"
+      , Svg.Attributes.strokeWidth "140"
+      , Svg.Attributes.d "M437,117H0M437,440H0"
+      ][] 
+    ]
+

@@ -5,4 +5,12 @@ require( '../../node_modules/bootstrap-sass/assets/javascripts/bootstrap.js' ); 
 
 // inject bundled Elm app into div#main
 var Elm = require( '../elm/Main' );
-Elm.Main.embed( document.getElementById( 'main' ) );
+var app = Elm.Main.embed( document.getElementById( 'main' ) );
+if (window.DeviceMotionEvent) {
+    console.log("DeviceMotionEvent supported")
+    window.addEventListener('devicemotion', deviceMotionHandler, false);
+}
+function deviceMotionHandler(eventData) {
+     console.log("Resize");
+     app.ports.rerollDice.send(null);
+}
